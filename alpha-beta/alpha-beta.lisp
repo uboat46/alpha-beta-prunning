@@ -49,6 +49,8 @@
     ((= COSTO 5)
 
     )
+    ((NULL COLOR)
+    )
     (T
       (BLOCK OUTER
         (SETQ RES '())
@@ -56,20 +58,20 @@
           (WHEN (NOT (= (MOD POS 8) 0))
             (IF (<= (MOD POS 8) 3) 
               (WHEN (NULL (NTH 0 (NTH (+ POS 3) S) ))
-                (SETQ RES (APPEND RES '(POS 3) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS 3)) ) )
               )
               (WHEN (NULL (NTH 0 (NTH (+ POS 4) S) ))
-                (SETQ RES (APPEND RES '(POS 4) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS 4)) ) )
               )
             )
           )
           (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
             (IF (<= (MOD POS 8) 3) 
               (WHEN (NULL (NTH 0 (NTH (+ POS 4) S) ))
-                (SETQ RES (APPEND RES '(POS 4) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS 4)) ) )
               )
               (WHEN (NULL (NTH 0 (NTH (+ POS 5) S) ))
-                (SETQ RES (APPEND RES '(POS 5) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS 5)) ) )
               )
             )
           )
@@ -78,20 +80,20 @@
           (WHEN (NOT (= (MOD POS 8) 0))
             (IF (>= (MOD POS 8) 4) 
               (WHEN (NULL (NTH 0 (NTH (- POS 4) S) ))
-                (SETQ RES (APPEND RES '(POS -4) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS -4)) ) )
               )
               (WHEN (NULL (NTH 0 (NTH (- POS 5) S) ))
-                (SETQ RES (APPEND RES '(POS -5) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS -5)) ) )
               )
             )
           )
           (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
             (IF (>= (MOD POS 8) 4) 
               (WHEN (NULL (NTH 0 (NTH (- POS 3) S) ))
-                (SETQ RES (APPEND RES '(POS -3) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS -3)) ) )
               )
               (WHEN (NULL (NTH 0 (NTH (- POS 4) S) ))
-                (SETQ RES (APPEND RES '(POS -4) ) )
+                (SETQ RES (APPEND RES (LIST (LIST POS -4)) ) )
               )
             )
           )
@@ -102,23 +104,33 @@
   )
 )
 
-(DEFUN JUEGA (FICHAS S)
-  (SETQ RES '())
-  (LOOP FOR FICHA IN FICHAS
-    DO (PUSH FICHA RES)
-  )
-  (REDUCE #'MAX  RES)
-)
-
-(DEFUN GETMOVS (S)
+(DEFUN GETMOVS (S COLOR)
   (SETQ RES '())
   (LOOP FOR FICHA IN S
-    DO ()
+    DO (WHEN (NOT (NULL (NTH 0 FICHA))) (WHEN (= COLOR (NTH 0 FICHA)) (SETQ RES (APPEND RES (PUEDEMOVER S (NTH 1 FICHA) COLOR (NTH 2 FICHA))))  ) )
   )
+  RES
 )
+
+(DEFUN GETUNIQUEPOS (MOVIMIENTOS)
+  (SETQ RES '())
+  (LOOP FOR MOVIMIENTO IN MOVIMIENTOS
+    DO (WHEN (NULL (MEMBER  (NTH 0 MOVIMIENTO) RES) )  (SETQ RES (APPEND RES (LIST (NTH 0 MOVIMIENTO)))))
+  )
+  RES
+)
+
+(DEFUN JUEGA (S COLOR)
+  (SETQ MOVS (GETMOVS S COLOR))
+  (SETQ PIEZAS (GETUNIQUEPOS MOVS))
+
+  PIEZAS
+)
+
 
 
 ;;TODO ORDENAR POR PUEDE COMER
+;;(REDUCE #'MAX  RES)
 ;;============================
 
 

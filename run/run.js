@@ -12,11 +12,8 @@ function runFile() {
               (2 20 3) (2 21 3) (2 22 3) (2 23 3)
               (2 24 3) (2 25 3) (2 26 3) (2 27 3)
               (2 28 3) (2 29 3) (2 30 3) (2 31 3)   )`;
-  let ls = spawn('clisp', ['-q','-i', `${__dirname}/../alpha-beta/alpha-beta.fas`, '-x', `(PUEDEMOVER ${s} 9 1 3 )`]);
-  //res.status(200).send(`${__dirname}/aStar/ASTAR.fas`);
-  //let ls = spawn('clisp', ['-q','-i', `/root/mapTraversalClisp/aStar/ASTAR.fas`, '-x', `(look '${start} '${end})`], {shell: 'bin/bash'});
-  //let ls = spawn('/bin/bash', ['/root/mapTraversalClisp/look.sh', '\''+start, '\''+end]);
-  //let ls = spawn('clisp', ['-q', '-x', '(PRINT \'hello']);
+              //PUEDEMOVER ${s} 8 1 3 
+  let ls = spawn('clisp', ['-q','-i', `${__dirname}/../alpha-beta/alpha-beta.fas`, '-x', `(JUEGA ${s} 1)`]);
   ls.stdout.on('data', (data) => {
     console.log(`stdout: ${data}`);
   });
