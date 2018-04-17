@@ -43,4 +43,89 @@
 (DEFUN OBTENJUGADAS (S)
   
 )
-;;ficha ( {color o nil} {x-pos} {y-pos} {costo} )
+
+(DEFUN PUEDEMOVER (S POS COLOR COSTO)
+  (COND
+    ((= COSTO 5)
+
+    )
+    (T
+      (BLOCK OUTER
+        (SETQ RES '())
+        (WHEN (= COLOR 1)
+          (WHEN (NOT (= (MOD POS 8) 0))
+            (IF (<= (MOD POS 8) 3) 
+              (WHEN (NULL (NTH 0 (NTH (+ POS 3) S) ))
+                (SETQ RES (APPEND RES '(POS 3) ) )
+              )
+              (WHEN (NULL (NTH 0 (NTH (+ POS 4) S) ))
+                (SETQ RES (APPEND RES '(POS 4) ) )
+              )
+            )
+          )
+          (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
+            (IF (<= (MOD POS 8) 3) 
+              (WHEN (NULL (NTH 0 (NTH (+ POS 4) S) ))
+                (SETQ RES (APPEND RES '(POS 4) ) )
+              )
+              (WHEN (NULL (NTH 0 (NTH (+ POS 5) S) ))
+                (SETQ RES (APPEND RES '(POS 5) ) )
+              )
+            )
+          )
+        )
+        (WHEN (= COLOR 2)
+          (WHEN (NOT (= (MOD POS 8) 0))
+            (IF (>= (MOD POS 8) 4) 
+              (WHEN (NULL (NTH 0 (NTH (- POS 4) S) ))
+                (SETQ RES (APPEND RES '(POS -4) ) )
+              )
+              (WHEN (NULL (NTH 0 (NTH (- POS 5) S) ))
+                (SETQ RES (APPEND RES '(POS -5) ) )
+              )
+            )
+          )
+          (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
+            (IF (>= (MOD POS 8) 4) 
+              (WHEN (NULL (NTH 0 (NTH (- POS 3) S) ))
+                (SETQ RES (APPEND RES '(POS -3) ) )
+              )
+              (WHEN (NULL (NTH 0 (NTH (- POS 4) S) ))
+                (SETQ RES (APPEND RES '(POS -4) ) )
+              )
+            )
+          )
+        ) 
+        (RETURN-FROM OUTER RES) 
+      )
+    )
+  )
+)
+
+(DEFUN JUEGA (FICHAS S)
+  (SETQ RES '())
+  (LOOP FOR FICHA IN FICHAS
+    DO (PUSH FICHA RES)
+  )
+  (REDUCE #'MAX  RES)
+)
+
+(DEFUN GETMOVS (S)
+  (SETQ RES '())
+  (LOOP FOR FICHA IN S
+    DO ()
+  )
+)
+
+
+;;TODO ORDENAR POR PUEDE COMER
+;;============================
+
+
+;;EMPIEZA CON UNA FICHA RANDOM CON POS 0 A 3
+;;SE TIENE UNA LISTA PARA LAS FICHAS NEGRAS QUE SON POSIBLES DE MOVER
+;;SE CORRE EL ALGORITMOS POR CADA UNA DE LAS FICHAS Y SE OBTIENE EL MAX DE CADA UNA DE ELLAS
+;;TIPO DEFINE SI ES REY O NO (REY == 5)
+;;ficha ( {color = [1 2] o nil} {pos from 0 to 15} {costo} )
+;; ficha.color = 1 = negra
+;;ficha.color = 2 = roja
