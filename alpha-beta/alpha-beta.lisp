@@ -58,6 +58,46 @@
   )
 )
 
+(DEFUN PUEDECOMER (S POS COLOR COSTO)
+  (COND
+    ((= COSTO 5)
+
+    )
+    ((NULL COLOR)
+    )
+    (T
+      (BLOCK OUTER
+        (SETQ RES '())
+        (WHEN (= COLOR 1)
+          (WHEN (NOT (= (MOD POS 8) 0))
+            (WHEN (NULL (NTH 0 (NTH (+ POS 7) S) ))
+              (SETQ RES (APPEND RES (LIST (LIST POS 7)) ) )
+            )
+          )
+          (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
+            (WHEN (NULL (NTH 0 (NTH (+ POS 9) S) ))
+              (SETQ RES (APPEND RES (LIST (LIST POS 9)) ) )
+            )
+          )
+        )
+        (WHEN (= COLOR 2)
+          (WHEN (NOT (= (MOD POS 8) 0))
+            (WHEN (NULL (NTH 0 (NTH (- POS 9) S) ))
+              (SETQ RES (APPEND RES (LIST (LIST POS -9)) ) )
+            )
+          )
+          (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
+            (WHEN (NULL (NTH 0 (NTH (- POS 7) S) ))
+              (SETQ RES (APPEND RES (LIST (LIST POS -7)) ) )
+            )
+          )
+        ) 
+        (RETURN-FROM OUTER RES) 
+      )
+    )
+  )
+)
+
 (DEFUN GETMOVS (S COLOR)
   (SETQ RES '())
   (LOOP FOR FICHA IN S
@@ -98,37 +138,26 @@
   RES
 )
 
-(DEFUN AGREGANIL (TREE)
-  (PUSH NIL TREE)
-)
 
-(DEFUN CREATREE (CANTIDAD)
-  (SETQ RES '())
-  (LOOP FOR X FROM 1 TO CANTIDAD
-    DO (SETQ RES (AGREGANIL RES))
-  )
-  RES
-) 
-
-(DEFUN ALPHABETA ()
-  ( PRINT (MAXVAL '( ( ( ( (10) (11) ) ( (9) (8) ) ) ( ( (14) (15) ) ( (4) (5)) ) )   ( ( ( (10) (11) ) ( (5) (8) ) ) ( ( (4) (15) ) ( (4) (3)) ) ) ) 5 -9999 9999))
-)
 
 (DEFUN VALUE (S)
-  (CAR S)
+  (SETQ RES 0)
+  (LOOP FOR FICHA IN S
+    DO (INCF RES (NTH 2 FICHA))
+  )
+  (LIST RES S)
 )
 
-(DEFUN MAXVAL (S D A B PIEZA)
+(DEFUN MAXVAL (S D A B MOVIMIENTOS)
   (COND
     ( (OR (= D 0) (NUMBERP (CAR S)))
       (VALUE S)
     )
     ( T
-      (SETQ V -9999)
+      (SETQ V (LIST -9999 S))
       (BLOCK OUTER
-        (SETQ MOVS (GETUNIQUEMOVS MOVS PIEZA))
-        (LOOP FOR C IN S
-          DO (SETQ V (MAX V (MINVAL C (- D 1) A B PIEZA) ) ) (SETQ A (MAX A V)) (IF (<= B A) (RETURN-FROM OUTER NIL))
+        (LOOP FOR MOV IN MOVIMIENTOS
+          DO (SETQ MOVS (GETMOVS (MOVE S MOV) 1)) (SETQ MINI (MINVAL (MOVE S MOV) (- D 1) A B MOVS)) (WHEN (> (NTH 0 MINI) (NTH 0 V)) (SETQ V MINI)) (SETQ A (MAX A (NTH 0 V))) (IF (<= B A) (RETURN-FROM OUTER NIL))
         ) 
       )
       V
@@ -136,17 +165,16 @@
   )
 )
 
-(DEFUN MINVAL (S D A B PIEZA)
+(DEFUN MINVAL (S D A B MOVIMIENTOS)
   (COND
     ( (OR (= D 0) (NUMBERP (CAR S)))
       (VALUE S)
     )
     ( T
-      (SETQ V 9999)
+      (SETQ V (LIST 9999 S))
       (BLOCK OUTER
-        (SETQ MOVS (GETUNIQUEMOVS MOVS PIEZA))
-        (LOOP FOR C IN S
-          DO (SETQ V (MIN V (MAXVAL C (- D 1) A B PIEZA) ) ) (SETQ B (MIN B V))(IF (<= B A) (RETURN-FROM OUTER NIL))
+        (LOOP FOR MOV IN MOVS
+          DO (SETQ MOVS (GETMOVS (MOVE S MOV) 2)) (SETQ MAXI (MAXVAL (MOVE S MOV) (- D 1) A B MOVS)) (WHEN (< (NTH 0 MAXI) (NTH 0 V)) (SETQ V MAXI)) (SETQ B (MIN B (NTH 0 V) ))(IF (<= B A) (RETURN-FROM OUTER NIL))
         ) 
       )
       V
@@ -158,7 +186,7 @@
   (SETQ MOVS (GETMOVS S COLOR))
   (SETQ PIEZAS (GETUNIQUEPOS MOVS))
   (LOOP FOR PIEZA IN PIEZAS
-    DO (MAXVAL S 3 -9999 9999 PIEZA)
+    DO (PRINT (MAXVAL S 3 -9999 9999 (GETUNIQUEMOVS MOVS PIEZA)))
   )
 )
 
@@ -178,3 +206,6 @@
 ;;ficha ( {color = [1 2] o nil} {pos from 0 to 15} {costo} )
 ;; ficha.color = 1 = negra
 ;;ficha.color = 2 = roja
+;;(DEFUN ALPHABETA ()
+;;  ( PRINT (MAXVAL '( ( ( ( (10) (11) ) ( (9) (8) ) ) ( ( (14) (15) ) ( (4) (5)) ) )   ( ( ( (10) (11) ) ( (5) (8) ) ) ( ( (4) (15) ) ( (4) (3)) ) ) ) 5 -9999 9999))
+;;)
