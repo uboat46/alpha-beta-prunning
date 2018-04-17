@@ -1,49 +1,3 @@
-(DEFUN ALPHABETA ()
-  ( PRINT (MAXVAL '( ( ( ( (10) (11) ) ( (9) (8) ) ) ( ( (14) (15) ) ( (4) (5)) ) )   ( ( ( (10) (11) ) ( (5) (8) ) ) ( ( (4) (15) ) ( (4) (3)) ) ) ) 5 -9999 9999))
-)
-
-(DEFUN VALUE (S)
-  (CAR S)
-)
-
-(DEFUN MAXVAL (S D A B)
-  (COND
-    ( (OR (= D 0) (NUMBERP (CAR S)))
-      (VALUE S)
-    )
-    ( T
-      (SETQ V -9999)
-      (BLOCK OUTER
-        (LOOP FOR C IN S
-          DO (SETQ V (MAX V (MINVAL C (- D 1) A B) ) ) (SETQ A (MAX A V)) (IF (<= B A) (RETURN-FROM OUTER NIL))
-        ) 
-      )
-      V
-    )
-  )
-)
-
-(DEFUN MINVAL (S D A B)
-  (COND
-    ( (OR (= D 0) (NUMBERP (CAR S)))
-      (VALUE S)
-    )
-    ( T
-      (SETQ V 9999)
-      (BLOCK OUTER
-        (LOOP FOR C IN S
-          DO (SETQ V (MIN V (MAXVAL C (- D 1) A B) ) ) (SETQ B (MIN B V))(IF (<= B A) (RETURN-FROM OUTER NIL))
-        ) 
-      )
-      V
-    )
-  )
-)
-
-(DEFUN OBTENJUGADAS (S)
-  
-)
-
 (DEFUN PUEDEMOVER (S POS COLOR COSTO)
   (COND
     ((= COSTO 5)
@@ -132,6 +86,18 @@
   RES
 )
 
+(DEFUN SETPIEZA (S COLOR POS COSTO)
+  (SETF (NTH POS S) (LIST COLOR POS COSTO))
+)
+
+(DEFUN MOVE (S MOV)
+  (SETQ RES (COPY-TREE S))
+  (SETQ FIC (NTH (NTH 0 MOV) RES))
+  (SETPIEZA RES (NTH 0 FIC) (+ (NTH 0 MOV) (NTH 1 MOV)) (NTH 2 FIC))
+  (SETPIEZA RES NIL (NTH 0 MOV) 0)
+  RES
+)
+
 (DEFUN AGREGANIL (TREE)
   (PUSH NIL TREE)
 )
@@ -144,11 +110,55 @@
   RES
 ) 
 
+(DEFUN ALPHABETA ()
+  ( PRINT (MAXVAL '( ( ( ( (10) (11) ) ( (9) (8) ) ) ( ( (14) (15) ) ( (4) (5)) ) )   ( ( ( (10) (11) ) ( (5) (8) ) ) ( ( (4) (15) ) ( (4) (3)) ) ) ) 5 -9999 9999))
+)
+
+(DEFUN VALUE (S)
+  (CAR S)
+)
+
+(DEFUN MAXVAL (S D A B PIEZA)
+  (COND
+    ( (OR (= D 0) (NUMBERP (CAR S)))
+      (VALUE S)
+    )
+    ( T
+      (SETQ V -9999)
+      (BLOCK OUTER
+        (SETQ MOVS (GETUNIQUEMOVS MOVS PIEZA))
+        (LOOP FOR C IN S
+          DO (SETQ V (MAX V (MINVAL C (- D 1) A B PIEZA) ) ) (SETQ A (MAX A V)) (IF (<= B A) (RETURN-FROM OUTER NIL))
+        ) 
+      )
+      V
+    )
+  )
+)
+
+(DEFUN MINVAL (S D A B PIEZA)
+  (COND
+    ( (OR (= D 0) (NUMBERP (CAR S)))
+      (VALUE S)
+    )
+    ( T
+      (SETQ V 9999)
+      (BLOCK OUTER
+        (SETQ MOVS (GETUNIQUEMOVS MOVS PIEZA))
+        (LOOP FOR C IN S
+          DO (SETQ V (MIN V (MAXVAL C (- D 1) A B PIEZA) ) ) (SETQ B (MIN B V))(IF (<= B A) (RETURN-FROM OUTER NIL))
+        ) 
+      )
+      V
+    )
+  )
+)
+
 (DEFUN JUEGA (S COLOR D)
   (SETQ MOVS (GETMOVS S COLOR))
   (SETQ PIEZAS (GETUNIQUEPOS MOVS))
   (LOOP FOR PIEZA IN PIEZAS
-    DO (PRINT (CREATREE (LENGTH (GETUNIQUEMOVS MOVS PIEZA ))) )
+    DO (MAXVAL S 3 -9999 9999 PIEZA)
   )
 )
 
