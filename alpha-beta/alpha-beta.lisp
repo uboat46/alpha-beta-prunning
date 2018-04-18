@@ -157,6 +157,12 @@
 
 (DEFUN SETPIEZA (S COLOR POS COSTO)
   (SETF (NTH POS S) (LIST COLOR POS COSTO))
+  (WHEN (AND (NOT (NULL COLOR)) (= 1 COLOR) (MEMBER POS '(28 29 30 31)) ) 
+    (SETF (NTH POS S) (LIST COLOR POS 5))
+  )
+  (WHEN (AND (NOT (NULL COLOR)) (= 2 COLOR) (MEMBER POS '(0 1 2 3)) ) 
+    (SETF (NTH POS S) (LIST COLOR POS 5))
+  )
 )
 
 (DEFUN MOVE (S MOV)
@@ -182,7 +188,7 @@
     DO (WHEN (AND (NOT (NULL (NTH 0 FICHA))) (= 2 (NTH 0 FICHA)) ) (INCF R (NTH 2 FICHA))) (WHEN (AND (NOT (NULL (NTH 0 FICHA))) (= 1 (NTH 0 FICHA)) ) (INCF N (NTH 2 FICHA)))
   )
   (INCF CANT)
-  (LIST (- N R) S)
+  (LIST (- R N) S)
 )
 
 (DEFUN MAXVAL (S D A B DEPTH)
@@ -192,37 +198,35 @@
     ( (OR (= D 0) (AND (NULL CMOVS) (NULL MOVS) ))
         (VALUE S)
     )
-    ( (NOT (NULL CMOVS))
+    (T 
       (SETQ V (LIST -9999 S))
-      (BLOCK OUTER
-        (LOOP FOR MOV IN CMOVS
-          DO 
-          (SETQ ALPHA (MINVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
-          (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) ) (PRINT 'OK))
+      (IF (NOT (NULL CMOVS))
+        (BLOCK OUTER
+          (LOOP FOR MOV IN CMOVS
+            DO 
+            (SETQ ALPHA (MINVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
+            (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETF (NTH 0 V)  (NTH 0 ALPHA) )
+              (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) ) (PRINT 'OK))
+            )
+            (SETQ A (MAX A (NTH 0 V)))
+            (IF (<= B A) (RETURN-FROM OUTER NIL))
           )
-          (SETQ A (MAX A (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
+        )
+        (BLOCK OUTER
+          (LOOP FOR MOV IN MOVS
+            DO 
+            (SETQ ALPHA (MINVAL (MOVE S MOV) (- D 1) A B DEPTH))
+            (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETF (NTH 0 V)  (NTH 0 ALPHA) )
+              (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
+            )
+            (SETQ A (MAX A (NTH 0 V)))
+            (IF (<= B A) (RETURN-FROM OUTER NIL))
+          )
         )
       )
-      V
-    )
-    ( T
-      (SETQ V (LIST -9999 S))
-      (BLOCK OUTER
-        (LOOP FOR MOV IN MOVS
-          DO 
-          (SETQ ALPHA (MINVAL (MOVE S MOV) (- D 1) A B DEPTH))
-          (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
-          )
-          (SETQ A (MAX A (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
-        )
-      )
-      V
+      V      
     )
   )
 )
@@ -234,34 +238,32 @@
     ( (OR (= D 0) (AND (NULL CMOVS) (NULL MOVS) ))
         (VALUE S)
     )
-    ( (NOT (NULL CMOVS))
+    (T
       (SETQ V (LIST 9999 S))
-      (BLOCK OUTER
-        (LOOP FOR MOV IN CMOVS
-          DO 
-          (SETQ ALPHA (MAXVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
-          (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) )(PRINT 'OK) )
+      (IF (NOT (NULL CMOVS))
+        (BLOCK OUTER
+          (LOOP FOR MOV IN CMOVS
+            DO 
+            (SETQ ALPHA (MAXVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
+            (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETF (NTH 0 V)  (NTH 0 ALPHA) )
+              (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) )(PRINT 'OK) )
+            )
+            (SETQ B (MIN B (NTH 0 V)))
+            (IF (<= B A) (RETURN-FROM OUTER NIL))
           )
-          (SETQ B (MIN B (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
         )
-      )
-      V
-    )
-    ( T
-      (SETQ V (LIST 9999 S))
-      (BLOCK OUTER
-        (LOOP FOR MOV IN MOVS
-          DO 
-          (SETQ ALPHA (MAXVAL (MOVE S MOV) (- D 1) A B DEPTH))
-          (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
+        (BLOCK OUTER
+          (LOOP FOR MOV IN MOVS
+            DO 
+            (SETQ ALPHA (MAXVAL (MOVE S MOV) (- D 1) A B DEPTH))
+            (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETF (NTH 0 V)  (NTH 0 ALPHA) )
+              (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
+            )
+            (SETQ B (MIN B (NTH 0 V)))
+            (IF (<= B A) (RETURN-FROM OUTER NIL))
           )
-          (SETQ B (MIN B (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
         )
       )
       V
@@ -271,5 +273,4 @@
 
 (DEFUN JUEGA (S COLOR D)
   ( NTH 1 (MAXVAL S D -9999 9999 D))
-  (PRINT CANT)
 )
