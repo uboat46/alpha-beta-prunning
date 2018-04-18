@@ -3,33 +3,21 @@
     <!--<textarea name="" id="" cols="30" rows="10" v-model="board">
 
     </textarea>-->
-    <table style="width:50%" v-if="board">
-      <tr>
-        <td >{{board[0]}}</td>
-        <td v-for="i in 3" :key="i">{{board[i]}}</td>
+    <table style="width:70%;margin:auto;height:80%;">
+      <tr v-for="(fila, i) in filas" :key="i">
+        <template v-for="(ficha, f) in fila">
+          <td v-if="(i % 2) == 1" :key="f+100" class="grey"></td>
+          <td 
+          :key="f"
+          @click="selectFrom($event, i, f)" 
+          :class="{black: (ficha == 1), red: (ficha == 2), nil: (ficha == 0), selected: ((i == selected.fila) && (f == selected.col))}"
+          :id="`${i}-${f}`">{{ficha}}</td>
+          <td v-if="(i % 2) == 0" :key="f+400" class="grey"></td>
+        </template>
       </tr>
-      <tr>
-        <td v-for="i in 7" :key="i" v-if="i > 3">{{board[i]}}</td>
-      </tr>
-      <tr>
-        <td v-for="i in 11" :key="i" v-if="i > 7">{{board[i]}}</td>
-      </tr>
-      <tr>
-        <td v-for="i in 15" :key="i" v-if="i > 11">{{board[i]}}</td>
-      </tr>
-      <tr>
-        <td v-for="i in 19" :key="i" v-if="i > 15">{{board[i]}}</td>
-      </tr>
-      <tr>
-        <td v-for="i in 23" :key="i" v-if="i > 19">{{board[i]}}</td>
-      </tr>
-      <tr>
-        <td v-for="i in 27" :key="i" v-if="i > 23">{{board[i]}}</td>
-      </tr>
-      <tr>
-        <td v-for="i in 31" :key="i" v-if="i > 27">{{board[i]}}</td>
-      </tr>
+      
     </table>
+
     <button @click="getBoard">JUEGA</button>
   </div>
 </template>
@@ -39,56 +27,131 @@ import axios from 'axios'
 
 export default {
   name: 'HelloWorld',
+  props: ['filas'],
   data () {
     return {
-      board: [1,1,1,1,
-              1,1,1,1,
-              1,1,1,1,
-              0,0,0,0,
-              0,0,0,0,
-              2,2,2,2,
-              2,2,2,2,
-              2,2,2,2],
-      fichas: []
+      fichas: [],
+      selected: {
+        col: -1,
+        fila: -1
+      }
     }
   },
   methods: {
+    pinta (){
+      var vm = this;
+      this.filas.forEach((fila, i) => {
+        fila.forEach((ficha, index) => {
+          var ele = document.getElementById(`${i}-${index}`);
+          ele.innerHTML = ficha;
+          switch(ficha) {
+            case 1:
+              ele.classList = '';
+              ele.classList.add('black');
+            break;
+            case 0:
+              ele.classList = '';
+              ele.classList.add('nil');
+            break;
+            case 2:
+              ele.classList = '';
+              ele.classList.add('red');
+            break;
+          }
+        });
+      });
+    },
+    selectFrom (e, fila, col){
+      var vm = this;
+      if(vm.filas[fila][col] == 2){
+        vm.selected.fila = fila;
+        vm.selected.col = col;
+      }else {
+        if(vm.selected.fila != -1){
+          if(Math.abs(fila - vm.selected.fila) > 1 ){
+            if((vm.selected.fila - fila) > 0){
+              if((vm.selected.col - col) > 0){
+                vm.comeA(fila + 1, col + 1);
+              }else {
+                vm.comeA(fila + 1, col - 1);
+              }
+            }else {
+              if((vm.selected.col - col) > 0){
+                vm.comeA(fila - 1, col + 1);
+              }else {
+                vm.comeA(fila - 1, col - 1);
+              }
+            }
+          }
+          vm.mueveA(fila, col);
+        }
+      }
+    },
+    mueveA (fila, col){
+      var vm = this;
+      var old = vm.filas[vm.selected.fila][vm.selected.col];
+      vm.filas[vm.selected.fila][vm.selected.col] = vm.filas[fila][col];
+      vm.filas[fila][col] = old; 
+      vm.pinta();
+      vm.getBoard();
+    },
+    comeA (fila, col){
+      var vm = this;
+      console.log(fila,col);
+      vm.filas[fila][col] = 0;
+      vm.pinta();
+    },
+    mueve (pos, mov) {
+      var vm = this;
+      var pos = parseInt(pos);
+      var npos = parseInt(pos) + parseInt(mov);
+      var fila = Math.floor(pos / 4);
+      var nfila = Math.floor(npos / 4);
+      var old = vm.filas[fila][pos % 4];
+      vm.filas[fila][pos % 4] = vm.filas[nfila][npos % 4];
+      vm.filas[nfila][npos % 4] = old; 
+      console.log(this.filas);
+      vm.pinta();
+    },
+    come (pos, come) {
+      var vm = this;
+      var npos = parseInt(pos) + parseInt(come);
+      var nfila = Math.floor(npos / 4);
+      vm.filas[nfila][npos % 4] = 0; 
+      vm.pinta();
+    },
     printBoard (data) {
       var vm = this;
       vm.fichas = []
       var res = data.data.trim();
-      /*this.board = res;
-      res = res.substring(1, res.length - 1).replace(/\n/g,'');
-      res = res.split(') (');
-      res.forEach(element => {
-        var ficha = element.replace('(','').replace(')','').split(' ');
-        if(ficha.length == 6){
-          var ficha1 = [ficha[0], ficha[1], ficha[2]];
-          var ficha2 = [ficha[3], ficha[4], ficha[5]];
-          vm.fichas.push(ficha1);
-          vm.fichas.push(ficha2);
-        }
-        vm.fichas.push(ficha);
-      });*/
-      alert(res);      
+      console.log(res);
+      var pos = res.substring(res.indexOf('NIL') + 5 ,res.indexOf('NIL') + 8).replace(')','').trim();
+      var mov = res.substring(res.indexOf('NIL') + 7 ,res.indexOf('NIL') + 10).replace(')','').trim();
+      var come = res.substring(res.indexOf('NIL') + 10 ,res.indexOf('NIL') + 13).replace(')','').replace(')','').trim();
+      this.mueve(pos, mov);  
+      if(come != ''){
+        this.come(pos, come);
+      }   
     },
     getBoard () {
-      var board = '(';
-      this.board.forEach((ficha, index) => {
-        switch(ficha) {
-          case 1:
-            board += `(1 ${index} 3)`;
-          break;
-          case 0:
-            board += `(NIL ${index} 0)`;
-          break;
-          case 2:
-            board += `(2 ${index} 3)`;
-          break;
-        }
-      }) 
-      board += ')'
-      this.callAPI(board);
+      var req = '(';
+      this.filas.forEach((fila, i) => {
+        fila.forEach((ficha, index) => {
+          switch(ficha) {
+            case 1:
+              req += `(1 ${(4*i) + index} 3)`;
+            break;
+            case 0:
+              req += `(NIL ${(4*i) + index} 0)`;
+            break;
+            case 2:
+              req += `(2 ${(4*i) + index} 3)`;
+            break;
+          }
+        });
+      });
+      req += ')';
+      this.callAPI(req);
     },
     callAPI (board) {
       var vm = this;
@@ -117,5 +180,25 @@ export default {
   top: 10%;
   left: 10%;
   background-color: white;
+}
+.black { 
+  background-color: black;
+  color: white;
+}
+.red{ 
+  background-color: rgb(158, 22, 22);
+  color: white;
+}
+.nil {
+  background-color: rgb(206, 175, 4);
+  color: black;
+}
+.grey {
+  background-color: rgb(253, 232, 232);
+  color: black;
+}
+.selected {
+  background-color: yellow;
+  color: black;
 }
 </style>

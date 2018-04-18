@@ -22,7 +22,7 @@ function runFile() {
                 (2 28 3) (2 29 3) (2 30 3) (2 31 3)   )`;
               //PUEDEMOVER ${s} 8 1 3 
               //(JUEGA ${s} 1 6)
-  let ls = spawn('clisp', ['-q','-i', `${__dirname}/../alpha-beta/alpha-beta.fas`, '-x', `(JUEGA ${s} 1 5)`]);
+  let ls = spawn('clisp', ['-q','-i', `${__dirname}/../alpha-beta/alpha-beta.fas`, '-x', `(JUEGA ${s} 1 7)`]);
   ls.stdout.on('data', (data) => {
     console.log(`stdout: ${data}`);
   });

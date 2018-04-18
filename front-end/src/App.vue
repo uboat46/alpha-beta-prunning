@@ -1,12 +1,32 @@
 <template>
   <div id="app">
-    <router-view/>
+    <router-view :filas="filas" @mov="changeTablero"/>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  data () {
+    return {
+      filas: [
+        [1,1,1,1],
+        [1,1,1,1],
+        [1,1,1,1],
+        [0,0,0,0],
+        [0,0,0,0],
+        [2,2,2,2],
+        [2,2,2,2],
+        [2,2,2,2],
+        [2,2,2,2]
+      ]
+    }
+  },
+  methods : {
+    changeTablero (board) {
+      this.filas = board;
+    }
+  }
 }
 </script>
 
