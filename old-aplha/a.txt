@@ -1,4 +1,3 @@
-(SETQ CANT 0)
 (DEFUN PUEDEMOVER (S POS COLOR COSTO)
   (COND
     ((= COSTO 5)
@@ -70,7 +69,7 @@
       (BLOCK OUTER
         (SETQ RES '())
         (WHEN (AND (= COLOR 1) (NULL (MEMBER POS '(24 25 26 27 28 29 30 31))) )
-          (WHEN (AND (NOT (= (MOD POS 8) 0)) (NOT (= (MOD POS 8) 4)))
+          (WHEN (NOT (= (MOD POS 8) 0))
             (IF (<= (MOD POS 8) 3) 
               (WHEN (AND (NULL (NTH 0 (NTH (+ POS 7) S) )) (NOT (NULL (NTH 0 (NTH (+ POS 3) S) ))) (NOT (= (NTH 0 (NTH (+ POS 3) S) ) COLOR))  )
                 (SETQ RES (APPEND RES (LIST (LIST POS 7 3)) ) )
@@ -80,7 +79,7 @@
               )
             )
           )
-          (WHEN (AND (NOT (= (MOD (+ POS 1) 8) 0)) (NOT (= (MOD (+ POS 1) 8) 4)))
+          (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
             (IF (<= (MOD POS 8) 3) 
               (WHEN (AND (NULL (NTH 0 (NTH (+ POS 9) S) )) (NOT (NULL (NTH 0 (NTH (+ POS 4) S) ))) (NOT (= (NTH 0 (NTH (+ POS 4) S) ) COLOR))  )
                 (SETQ RES (APPEND RES (LIST (LIST POS 9 4)) ) )
@@ -92,7 +91,7 @@
           )
         )
         (WHEN (AND (= COLOR 2) (NULL (MEMBER POS '(0 1 2 3 4 5 6 7))) )
-          (WHEN (AND (NOT (= (MOD POS 8) 0)) (NOT (= (MOD POS 8) 4)))
+          (WHEN (NOT (= (MOD POS 8) 0))
             (IF (>= (MOD POS 8) 4) 
               (WHEN (AND (NULL (NTH 0 (NTH (- POS 9) S) )) (NOT (NULL (NTH 0 (NTH (- POS 4) S) ))) (NOT (= (NTH 0 (NTH (- POS 4) S) ) COLOR))  )
                 (SETQ RES (APPEND RES (LIST (LIST POS -9 -4)) ) )
@@ -102,7 +101,7 @@
               )
             )
           )
-          (WHEN (AND (NOT (= (MOD (+ POS 1) 8) 0)) (NOT (= (MOD (+ POS 1) 8) 4)))
+          (WHEN (NOT (= (MOD (+ POS 1) 8) 0))
             (IF (>= (MOD POS 8) 4) 
               (WHEN (AND (NULL (NTH 0 (NTH (- POS 7) S) )) (NOT (NULL (NTH 0 (NTH (- POS 3) S) ))) (NOT (= (NTH 0 (NTH (- POS 3) S) ) COLOR))  )
                 (SETQ RES (APPEND RES (LIST (LIST POS -7 -3)) ) )
@@ -181,95 +180,126 @@
   (LOOP FOR FICHA IN S
     DO (WHEN (AND (NOT (NULL (NTH 0 FICHA))) (= 2 (NTH 0 FICHA)) ) (INCF R (NTH 2 FICHA))) (WHEN (AND (NOT (NULL (NTH 0 FICHA))) (= 1 (NTH 0 FICHA)) ) (INCF N (NTH 2 FICHA)))
   )
-  (INCF CANT)
   (LIST (- N R) S)
 )
 
-(DEFUN MAXVAL (S D A B DEPTH)
-  (SETQ CMOVS (GETCOMERS S 1))
-  (SETQ MOVS (GETMOVS S 1))
+(DEFUN MAXVAL (S D A B MOVIMIENTOS RESULT DEPTH PIEZA)
   (COND
-    ( (OR (= D 0) (AND (NULL CMOVS) (NULL MOVS) ))
+    ( (OR (= D 0) (NULL MOVIMIENTOS))
         (VALUE S)
     )
-    ( (NOT (NULL CMOVS))
-      (SETQ V (LIST -9999 S))
-      (BLOCK OUTER
-        (LOOP FOR MOV IN CMOVS
-          DO 
-          (SETQ ALPHA (MINVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
-          (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) ) (PRINT 'OK))
+    (
+      (NOT (NULL PIEZA))  
+        (IF (NOT (NULL MOVIMIENTOS)) 
+          (LOOP FOR MOV IN MOVIMIENTOS
+            DO (MAXVAL (COME (MOVE S MOV) MOV) D A B (GETUNIQUEMOVS (GETCOMERS (COME (MOVE S MOV) MOV) 1) PIEZA) RESULT DEPTH PIEZA )    
           )
-          (SETQ A (MAX A (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
+          (
+           
+          )
         )
-      )
-      V
+        
     )
     ( T
       (SETQ V (LIST -9999 S))
       (BLOCK OUTER
-        (LOOP FOR MOV IN MOVS
-          DO 
-          (SETQ ALPHA (MINVAL (MOVE S MOV) (- D 1) A B DEPTH))
-          (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
-          )
-          (SETQ A (MAX A (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
-        )
+        (LOOP FOR MOV IN MOVIMIENTOS
+          DO (SETQ MOVS (GETMOVS (MOVE S MOV) 1)) (SETQ MINI (MINVAL (MOVE S MOV) (- D 1) A B MOVS RESULT DEPTH NIL)) 
+          (WHEN (> (NTH 0 MINI) (NTH 0 V)) (SETQ V MINI ) (WHEN (= D DEPTH) (SETQ RESULT (MOVE S MOV)) ) ) (SETQ A (MAX A (NTH 0 V))) (PRINT RESULT) (IF (<= B A) (RETURN-FROM OUTER NIL))
+        ) 
       )
       V
     )
   )
 )
 
-(DEFUN MINVAL (S D A B DEPTH)
-  (SETQ CMOVS (GETCOMERS S 2))
-  (SETQ MOVS (GETMOVS S 2))
+(DEFUN MINVAL (S D A B MOVIMIENTOS RESULT DEPTH PIEZA)
   (COND
-    ( (OR (= D 0) (AND (NULL CMOVS) (NULL MOVS) ))
-        (VALUE S)
-    )
-    ( (NOT (NULL CMOVS))
-      (SETQ V (LIST 9999 S))
-      (BLOCK OUTER
-        (LOOP FOR MOV IN CMOVS
-          DO 
-          (SETQ ALPHA (MAXVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
-          (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) )(PRINT 'OK) )
-          )
-          (SETQ B (MIN B (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
-        )
-      )
-      V
+    ( (OR (= D 0) (NULL MOVIMIENTOS) )
+      (VALUE S)
     )
     ( T
       (SETQ V (LIST 9999 S))
       (BLOCK OUTER
         (LOOP FOR MOV IN MOVS
-          DO 
-          (SETQ ALPHA (MAXVAL (MOVE S MOV) (- D 1) A B DEPTH))
-          (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
-            (SETF (NTH 0 V)  (NTH 0 ALPHA) )
-            (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
-          )
-          (SETQ B (MIN B (NTH 0 V)))
-          (IF (<= B A) (RETURN-FROM OUTER NIL))
-        )
+          DO (SETQ MOVS (GETMOVS (MOVE S MOV) 2)) (SETQ MAXI (MAXVAL (MOVE S MOV) (- D 1) A B MOVS RESULT DEPTH NIL)) 
+          (WHEN (< (NTH 0 MAXI) (NTH 0 V)) (SETQ V MAXI ) (WHEN (= D DEPTH) (SETQ RESULT (MOVE S MOV)) )) (SETQ B (MIN B (NTH 0 V) ))(IF (<= B A) (RETURN-FROM OUTER NIL))
+        ) 
       )
       V
     )
   )
 )
 
+(DEFUN COMERS (S D))
 (DEFUN JUEGA (S COLOR D)
-  ( NTH 1 (MAXVAL S D -9999 9999 D))
-  (PRINT CANT)
+  (SETQ MOVS (GETMOVS S COLOR))
+  (SETQ CMOVS (GETCOMERS S COLOR))
+  (SETQ CPIEZAS (GETUNIQUEPOS CMOVS))
+  (SETQ PIEZAS (GETUNIQUEPOS MOVS))
+  (SETQ RESULT NIL)
+  (IF (NOT (NULL CPIEZAS))
+    (LOOP FOR PIEZA IN CPIEZAS
+      DO (MAXVAL S D -9999 9999 (GETUNIQUEMOVS CMOVS PIEZA) RESULT D PIEZA) (PRINT RESULT)
+    )
+    (LOOP FOR PIEZA IN PIEZAS
+      DO (MAXVAL S D -9999 9999 (GETUNIQUEMOVS MOVS PIEZA) RESULT D NIL) (PRINT RESULT)
+    )
+  )
 )
+
+
+
+;;TODO ORDENAR POR PUEDE COMER
+;;COMER
+;;MOVER PIEZA
+;;(REDUCE #'MAX  RES)
+;;============================
+
+
+;;EMPIEZA CON UNA FICHA RANDOM CON POS 0 A 3
+;;SE TIENE UNA LISTA PARA LAS FICHAS NEGRAS QUE SON POSIBLES DE MOVER
+;;SE CORRE EL ALGORITMOS POR CADA UNA DE LAS FICHAS Y SE OBTIENE EL MAX DE CADA UNA DE ELLAS
+;;TIPO DEFINE SI ES REY O NO (REY == 5)
+;;ficha ( {color = [1 2] o nil} {pos from 0 to 15} {costo} )
+;; ficha.color = 1 = negra
+;;ficha.color = 2 = roja
+;;(DEFUN ALPHABETA ()
+;;  ( PRINT (MAXVAL '( ( ( ( (10) (11) ) ( (9) (8) ) ) ( ( (14) (15) ) ( (4) (5)) ) )   ( ( ( (10) (11) ) ( (5) (8) ) ) ( ( (4) (15) ) ( (4) (3)) ) ) ) 5 -9999 9999))
+;;)
+
+;;(WHEN (NOT (NULL PIEZA)) 
+  ;;      (BLOCK COMI
+    ;;;;      (SETQ SS NIL)
+      ;;    (LOOP FOR MOV IN MOVIMIENTOS
+       ;;     FOR COVS = 
+        ;;    WHILE (NOT (NULL COVS))
+         ;;     DO (SETQ MOVS (GETMOVS (MOVE S MOV) 1)) (SETQ MINI (MINVAL (MOVE S MOV) (- D 1) A B MOVS RESULT DEPTH NIL)) 
+          ;;    (WHEN (> (NTH 0 MINI) (NTH 0 V)) (SETQ V MINI ) (WHEN (= D DEPTH) (SETQ RESULT (MOVE S MOV)) ) ) (SETQ A (MAX A (NTH 0 V))) (PRINT RESULT) (IF (<= B A) (RETURN-FROM OUTER NIL)) 
+         ;; ) 
+      ;;  ) 
+     ;; )
+
+
+
+     (
+      (NOT (NULL PIEZA))  
+        (IF (NOT (NULL MOVIMIENTOS)) 
+          (LOOP FOR MOV IN MOVIMIENTOS
+            DO (MAXVAL (COME (MOVE S MOV) MOV) D A B (GETUNIQUEMOVS (GETCOMERS (COME (MOVE S MOV) MOV) 1) PIEZA) RESULT DEPTH PIEZA )    
+          )
+          (
+           
+          )
+        )
+        
+    )
+
+
+
+    (SETQ MOVS (GETMOVS (MOVE S MOV) 1))
+
+
+
+    (SETQ MINI (MINVAL (MOVE S MOV) (- D 1) A B DEPTH NIL)) 
+    (WHEN (> (NTH 0 MINI) (NTH 0 V)) (SETQ V MINI ) (WHEN (= D DEPTH) (SETQ RESULT (MOVE S MOV)) ) ) (SETQ A (MAX A (NTH 0 V))) (PRINT RESULT) (IF (<= B A) (RETURN-FROM OUTER NIL))
