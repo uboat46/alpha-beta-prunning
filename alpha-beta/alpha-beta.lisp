@@ -1,4 +1,5 @@
 (SETQ CANT 0)
+(SETQ LISTA NIL)
 (DEFUN PUEDEMOVER (S POS COLOR COSTO)
   (COND
     ((= COSTO 5)
@@ -191,7 +192,7 @@
   (LIST (- R N) S)
 )
 
-(DEFUN MAXVAL (S D A B DEPTH)
+(DEFUN MAXVAL (S D A B DEPTH PADRE)
   (SETQ CMOVS (GETCOMERS S 1))
   (SETQ MOVS (GETMOVS S 1))
   (COND
@@ -204,8 +205,9 @@
         (BLOCK OUTER
           (LOOP FOR MOV IN CMOVS
             DO 
-            (SETQ ALPHA (MINVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
+            (SETQ ALPHA (MINVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH (LIST PADRE MOV) ))
             (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETQ LISTA (LIST PADRE MOV))
               (SETF (NTH 0 V)  (NTH 0 ALPHA) )
               (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) ) (PRINT 'OK))
             )
@@ -216,8 +218,9 @@
         (BLOCK OUTER
           (LOOP FOR MOV IN MOVS
             DO 
-            (SETQ ALPHA (MINVAL (MOVE S MOV) (- D 1) A B DEPTH))
+            (SETQ ALPHA (MINVAL (MOVE S MOV) (- D 1) A B DEPTH (LIST PADRE MOV)))
             (WHEN (> (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETQ LISTA (LIST PADRE MOV))
               (SETF (NTH 0 V)  (NTH 0 ALPHA) )
               (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
             )
@@ -231,7 +234,7 @@
   )
 )
 
-(DEFUN MINVAL (S D A B DEPTH)
+(DEFUN MINVAL (S D A B DEPTH PADRE)
   (SETQ CMOVS (GETCOMERS S 2))
   (SETQ MOVS (GETMOVS S 2))
   (COND
@@ -244,8 +247,9 @@
         (BLOCK OUTER
           (LOOP FOR MOV IN CMOVS
             DO 
-            (SETQ ALPHA (MAXVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH))
+            (SETQ ALPHA (MAXVAL (COME (MOVE S MOV) MOV) (- D 1) A B DEPTH (LIST PADRE MOV)))
             (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETQ LISTA (LIST PADRE MOV))
               (SETF (NTH 0 V)  (NTH 0 ALPHA) )
               (WHEN (= D DEPTH) (SETF (NTH 1 V) (COME (MOVE S MOV) MOV) )(PRINT 'OK) )
             )
@@ -256,8 +260,9 @@
         (BLOCK OUTER
           (LOOP FOR MOV IN MOVS
             DO 
-            (SETQ ALPHA (MAXVAL (MOVE S MOV) (- D 1) A B DEPTH))
+            (SETQ ALPHA (MAXVAL (MOVE S MOV) (- D 1) A B DEPTH (LIST PADRE MOV)))
             (WHEN (< (NTH 0 ALPHA) (NTH 0 V)) 
+              (SETQ LISTA (LIST PADRE MOV))
               (SETF (NTH 0 V)  (NTH 0 ALPHA) )
               (WHEN (= D DEPTH) (SETF (NTH 1 V) (MOVE S MOV) ) (PRINT 'OK))
             )
@@ -272,5 +277,6 @@
 )
 
 (DEFUN JUEGA (S COLOR D)
-  ( NTH 1 (MAXVAL S D -9999 9999 D))
+  ( NTH 1 (MAXVAL S D -9999 9999 D NIL))
+  LISTA
 )
